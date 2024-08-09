@@ -170,7 +170,7 @@ class ReadView(context: Context, attrs: AttributeSet) :
                 this.rootWindowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.mandatorySystemGestures())
             val height = activity?.windowManager?.currentWindowMetrics?.bounds?.height()
             if (height != null) {
-                if (event.y > height.minus(insets.bottom)) {
+                if (event.y > height.minus(insets.bottom) && event.action != MotionEvent.ACTION_UP && event.action != MotionEvent.ACTION_CANCEL) {
                     return true
                 }
             }
@@ -622,14 +622,14 @@ class ReadView(context: Context, attrs: AttributeSet) :
     /**
      * 从选择位置开始朗读
      */
-    fun aloudStartSelect() {
+    suspend fun aloudStartSelect() {
         val selectStartPos = curPage.selectStartPos
         var pagePos = selectStartPos.relativePagePos
         val line = selectStartPos.lineIndex
         val column = selectStartPos.columnIndex
         while (pagePos > 0) {
             if (!ReadBook.moveToNextPage()) {
-                ReadBook.moveToNextChapter(false)
+                ReadBook.moveToNextChapterAwait(false)
             }
             pagePos--
         }
@@ -708,7 +708,7 @@ class ReadView(context: Context, attrs: AttributeSet) :
         }
 
     override fun hasNextChapter(): Boolean {
-        return ReadBook.durChapterIndex < ReadBook.chapterSize - 1
+        return ReadBook.durChapterIndex < ReadBook.simulatedChapterSize - 1
     }
 
     override fun hasPrevChapter(): Boolean {
